@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TasteRank Explorer — Wine Grape Similarity Network</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; font-family: 'DM Sans', system-ui, sans-serif; background: #FAF8F5; }
+
+  #app { display: flex; width: 100%; height: 100%; }
+
+  /* LEFT PANEL */
+  #panel { width: 310px; min-width: 310px; background: #fff; border-right: 1px solid #e8e2db; display: flex; flex-direction: column; overflow: hidden; }
+  #panel-header { padding: 20px 18px 14px; border-bottom: 1px solid #e8e2db; }
+  #panel-header h1 { font-family: 'DM Serif Display', serif; font-size: 24px; color: #7B2D26; letter-spacing: -0.5px; }
+  #panel-header .sub { font-size: 11px; color: #888; margin-top: 4px; line-height: 1.4; }
+  #panel-header .meta { font-size: 10px; color: #aaa; margin-top: 2px; }
+
+  /* Downloads */
+  #downloads { padding: 8px 18px 4px; border-bottom: 1px solid #e8e2db; }
+  .dl-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .dl-btn {
+    flex: 1; min-width: 80px; display: flex; align-items: center; justify-content: center; gap: 5px;
+    padding: 6px 8px; border: 1px solid #d4c4be; border-radius: 6px; background: #faf8f5;
+    font-size: 10px; font-family: 'DM Sans', sans-serif; color: #7B2D26; cursor: pointer;
+    text-decoration: none; font-weight: 600; transition: all 0.15s; line-height: 1.2;
+  }
+  .dl-btn:hover { background: #7B2D26; color: #fff; border-color: #7B2D26; }
+  .dl-btn svg { width: 12px; height: 12px; flex-shrink: 0; }
+  .dl-btn:hover svg path { stroke: #fff; }
+
+  #search-box { padding: 10px 18px; }
+  #search-input {
+    width: 100%; padding: 9px 12px; border: 1px solid #ddd; border-radius: 7px;
+    font-size: 13px; font-family: 'DM Sans', sans-serif; outline: none; background: #faf8f5;
+    transition: border-color 0.15s;
+  }
+  #search-input:focus { border-color: #7B2D26; }
+  #search-results { margin-top: 4px; border: 1px solid #eee; border-radius: 7px; background: #fff; max-height: 200px; overflow: auto; display: none; }
+  .search-item { padding: 7px 12px; cursor: pointer; font-size: 12px; border-bottom: 1px solid #f5f5f5; display: flex; align-items: center; gap: 8px; }
+  .search-item:hover { background: #faf8f5; }
+  .search-item:last-child { border-bottom: none; }
+
+  /* Reset bar */
+  #reset-bar {
+    display: none; padding: 8px 18px; background: #fdf6f0; border-bottom: 1px solid #f0e0d0;
+    align-items: center; gap: 8px;
+  }
+  #reset-bar.active { display: flex; }
+  #reset-bar .filter-label { flex: 1; font-size: 11.5px; color: #7B2D26; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #reset-btn {
+    padding: 4px 12px; border: 1px solid #d4a89a; border-radius: 5px; background: #fff;
+    font-size: 11px; font-family: 'DM Sans', sans-serif; color: #7B2D26; cursor: pointer;
+    font-weight: 600; transition: all 0.15s;
+  }
+  #reset-btn:hover { background: #7B2D26; color: #fff; }
+
+  /* Clusters */
+  #clusters { padding: 4px 18px 10px; }
+  .section-label { font-size: 10px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .cluster-item {
+    padding: 7px 10px; margin-bottom: 3px; border-radius: 6px; cursor: pointer;
+    border: 1.5px solid transparent; transition: all 0.15s; display: flex; align-items: center; gap: 8px;
+  }
+  .cluster-item:hover { background: #faf8f5; }
+  .cluster-item.active { border-color: var(--cc); background: var(--cbg); }
+  .cluster-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+  .cluster-label { font-size: 11.5px; color: #333; flex: 1; line-height: 1.3; }
+  .cluster-count { font-size: 10px; color: #aaa; }
+
+  /* Detail / list area */
+  #detail { flex: 1; overflow-y: auto; overflow-x: hidden; border-top: 1px solid #e8e2db; padding: 14px 18px; }
+  #detail h2 { font-family: 'DM Serif Display', serif; font-size: 18px; color: #1a1a1a; }
+  .detail-meta { display: flex; gap: 12px; font-size: 11px; color: #666; margin: 4px 0 12px; }
+  .detail-meta strong { color: #7B2D26; }
+
+  .profile-row { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
+  .profile-label { width: 76px; font-size: 9.5px; color: #777; text-align: right; flex-shrink: 0; }
+  .profile-bar-bg { flex: 1; height: 9px; background: #f0ece6; border-radius: 4px; overflow: hidden; }
+  .profile-bar { height: 100%; border-radius: 4px; transition: width 0.3s ease; }
+  .profile-val { width: 14px; font-size: 9px; color: #999; text-align: right; }
+
+  .list-item {
+    padding: 5px 8px; margin-bottom: 2px; border-radius: 5px; cursor: pointer;
+    display: flex; align-items: center; gap: 6px; font-size: 11.5px;
+  }
+  .list-item:hover { background: #faf8f5; }
+  .list-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .list-name { flex: 1; color: #333; }
+  .list-meta { font-size: 9px; color: #aaa; }
+  .list-rank { font-size: 9px; color: #bbb; }
+
+  .rank-num { width: 18px; font-size: 10px; color: #7B2D26; font-weight: 700; text-align: right; flex-shrink: 0; }
+
+  .hint-box {
+    margin-top: 16px; padding: 12px; background: #faf8f5; border-radius: 8px;
+    font-size: 10.5px; color: #888; line-height: 1.6;
+  }
+  .hint-box strong { color: #666; }
+
+  /* Canvas */
+  #canvas { flex: 1; position: relative; overflow: hidden; }
+  #canvas svg { width: 100%; height: 100%; background: #FAF8F5; }
+
+  /* Tooltip */
+  #tooltip {
+    position: absolute; top: 12px; right: 12px; display: none;
+    background: rgba(255,255,255,0.95); backdrop-filter: blur(8px);
+    border: 1px solid #e8e2db; border-radius: 10px; padding: 10px 14px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06); pointer-events: none; max-width: 230px;
+  }
+  #tooltip.visible { display: block; }
+  #tooltip .tt-name { font-weight: 700; font-size: 13px; color: #1a1a1a; }
+  #tooltip .tt-info { font-size: 11px; color: #666; line-height: 1.5; margin-top: 2px; }
+
+  /* Keyboard hint */
+  #kbd-hint {
+    position: absolute; bottom: 12px; right: 12px;
+    font-size: 10px; color: #bbb; background: rgba(255,255,255,0.8);
+    padding: 6px 10px; border-radius: 6px;
+  }
+  kbd { background: #eee; padding: 1px 5px; border-radius: 3px; font-family: 'DM Sans', sans-serif; font-size: 9px; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- LEFT PANEL -->
+  <div id="panel">
+    <div id="panel-header">
+      <h1>TasteRank</h1>
+      <div class="sub">Eigenvector Centrality on WSET SAT Profiles</div>
+      <div class="meta">101 varieties · 341 edges · 6 communities</div>
+    </div>
+
+    <div id="downloads">
+      <div class="section-label">Documentation</div>
+      <div class="dl-row">
+        <a class="dl-btn" href="TasteRank_Summary.pdf" target="_blank">
+          <svg viewBox="0 0 16 16"><path d="M8 1v9m0 0L5 7m3 3l3-3M3 13h10" stroke="#7B2D26" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Summary
+        </a>
+        <a class="dl-btn" href="TasteRank_Technical_Appendix.pdf" target="_blank">
+          <svg viewBox="0 0 16 16"><path d="M8 1v9m0 0L5 7m3 3l3-3M3 13h10" stroke="#7B2D26" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Technical
+        </a>
+        <a class="dl-btn" href="TasteRank_Data_Appendix.pdf" target="_blank">
+          <svg viewBox="0 0 16 16"><path d="M8 1v9m0 0L5 7m3 3l3-3M3 13h10" stroke="#7B2D26" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Data
+        </a>
+      </div>
+    </div>
+
+    <div id="search-box">
+      <input type="text" id="search-input" placeholder="Search variety..." autocomplete="off" />
+      <div id="search-results"></div>
+    </div>
+
+    <div id="reset-bar">
+      <span class="filter-label" id="filter-label"></span>
+      <button id="reset-btn">✕ Reset</button>
+    </div>
+
+    <div id="clusters">
+      <div class="section-label">Communities</div>
+      <div id="cluster-list"></div>
+    </div>
+
+    <div id="detail"></div>
+  </div>
+
+  <!-- GRAPH -->
+  <div id="canvas">
+    <svg id="graph-svg"></svg>
+    <div id="tooltip"></div>
+    <div id="kbd-hint"><kbd>Esc</kbd> reset · scroll zoom · drag pan · click node or community</div>
+  </div>
+
+</div>
+
+<script>
+// ============================================================================
+// DATA
+// ============================================================================
+const GRAPE_TYPE={"Cabernet Sauvignon":"red","Merlot":"red","Cabernet Franc":"red","Petit Verdot":"red","Malbec":"red","Carménère":"red","Pinot Noir":"red","Gamay":"red","St. Laurent":"red","Schiava":"red","Trousseau":"red","Poulsard":"red","Frappato":"red","Cinsault":"red","Zweigelt":"red","Kadarka":"red","Nebbiolo":"red","Barbera":"red","Dolcetto":"red","Sangiovese":"red","Montepulciano":"red","Corvina":"red","Lagrein":"red","Aglianico":"red","Nero d'Avola":"red","Negroamaro":"red","Nerello Mascalese":"red","Sagrantino":"red","Primitivo":"red","Syrah":"red","Grenache":"red","Mourvèdre":"red","Carignan":"red","Counoise":"red","Tempranillo":"red","Mencía":"red","Monastrell":"red","Graciano":"red","Bobal":"red","Garnacha Tintorera":"red","Touriga Nacional":"red","Touriga Franca":"red","Tinta Roriz":"red","Baga":"red","Zinfandel":"red","Petite Sirah":"red","Pinotage":"red","Tannat":"red","Xinomavro":"red","Limniona":"red","Mavrud":"red","Plavac Mali":"red","Blaufränkisch":"red","Chardonnay":"white","Pinot Blanc":"white","Pinot Gris":"white","Aligoté":"white","Melon de Bourgogne":"white","Riesling":"white","Gewürztraminer":"white","Muscat Blanc":"white","Torrontés":"white","Malagousia":"white","Chenin Blanc":"white","Sauvignon Blanc":"white","Viognier":"white","Marsanne":"white","Roussanne":"white","Clairette":"white","Sémillon":"white","Grüner Veltliner":"white","Silvaner":"white","Müller-Thurgau":"white","Welschriesling":"white","Furmint":"white","Albariño":"white","Verdejo":"white","Godello":"white","Encruzado":"white","Arinto":"white","Loureiro":"white","Verdelho":"white","Vermentino":"white","Fiano":"white","Falanghina":"white","Greco":"white","Garganega":"white","Trebbiano":"white","Verdicchio":"white","Cortese":"white","Arneis":"white","Friulano":"white","Ribolla Gialla":"white","Malvasia":"white","Assyrtiko":"white","Vidiano":"white","Chasselas":"white","Petit Manseng":"white","Colombard":"white","Ugni Blanc":"white","Mauzac":"white"};
+
+const PROFILES={"Cabernet Sauvignon":[5,4,1,3,3,4,3,5,5,4,4,5,5],"Merlot":[4,3,1,4,2,3,3,3,4,4,3,4,4],"Cabernet Franc":[3,4,2,2,4,2,4,4,3,3,4,4,4],"Petit Verdot":[5,3,2,3,2,3,3,5,5,4,4,4,4],"Malbec":[5,3,2,4,1,3,3,4,5,4,4,4,3],"Carménère":[4,4,1,3,4,2,3,3,4,3,4,3,3],"Pinot Noir":[2,4,2,2,2,2,4,2,2,3,4,4,5],"Gamay":[2,4,2,2,1,1,4,1,2,2,3,2,3],"St. Laurent":[3,3,1,3,2,2,4,3,3,3,3,3,3],"Schiava":[1,3,2,2,1,0,4,1,1,2,2,2,2],"Trousseau":[2,3,1,2,2,1,4,2,2,2,3,3,3],"Poulsard":[1,3,2,2,1,0,4,1,1,2,2,2,2],"Frappato":[2,4,3,2,1,0,4,1,2,2,3,2,3],"Cinsault":[2,3,2,3,1,1,3,2,2,3,3,2,2],"Zweigelt":[3,3,1,3,1,1,3,2,3,3,3,3,2],"Kadarka":[2,3,2,2,2,1,4,2,2,2,3,2,3],"Nebbiolo":[3,5,3,3,3,3,5,5,3,4,5,5,5],"Barbera":[4,3,1,3,1,2,5,2,3,3,3,3,3],"Dolcetto":[4,3,1,3,1,1,3,3,3,3,3,2,2],"Sangiovese":[3,4,1,2,3,2,5,4,3,3,4,4,4],"Montepulciano":[5,3,1,4,2,2,3,4,4,3,3,3,3],"Corvina":[3,3,2,3,1,1,4,2,3,3,3,3,3],"Lagrein":[5,3,1,3,2,2,3,4,4,3,3,3,3],"Aglianico":[4,4,1,3,3,3,5,5,4,4,4,5,5],"Nero d'Avola":[5,3,1,4,2,2,3,4,4,4,4,3,3],"Negroamaro":[4,3,1,4,2,2,3,3,4,4,3,3,3],"Nerello Mascalese":[2,4,2,2,3,2,5,3,2,3,4,4,5],"Sagrantino":[5,3,1,4,2,3,3,5,5,4,4,4,4],"Primitivo":[5,4,1,5,1,3,2,3,5,5,4,3,3],"Syrah":[5,4,2,3,2,4,3,4,5,4,4,5,5],"Grenache":[3,3,1,4,2,2,2,2,4,5,3,3,3],"Mourvèdre":[5,4,1,3,3,3,3,4,5,4,4,4,4],"Carignan":[4,3,1,3,3,1,4,4,4,3,3,3,3],"Counoise":[3,3,2,3,2,1,4,3,3,3,3,3,3],"Tempranillo":[4,3,1,3,3,3,3,4,4,3,3,4,4],"Mencía":[3,4,2,2,3,2,4,3,3,3,4,3,4],"Monastrell":[5,4,1,4,2,3,2,4,5,5,4,4,3],"Graciano":[5,4,2,3,3,3,4,5,4,3,4,4,4],"Bobal":[5,3,1,3,2,1,4,4,4,3,3,3,3],"Garnacha Tintorera":[5,3,1,4,2,2,3,4,5,4,3,3,2],"Touriga Nacional":[5,5,3,3,2,3,3,5,5,4,5,5,5],"Touriga Franca":[4,4,3,3,1,2,3,3,4,3,4,4,4],"Tinta Roriz":[4,3,1,3,3,3,3,4,4,3,3,4,4],"Baga":[4,3,1,2,3,2,5,5,3,3,3,4,4],"Zinfandel":[5,4,1,5,1,3,2,3,5,5,4,3,3],"Petite Sirah":[5,3,1,4,1,3,3,5,5,4,4,4,3],"Pinotage":[5,4,0,4,1,3,3,4,4,4,4,3,3],"Tannat":[5,3,1,3,2,3,4,5,5,4,4,4,4],"Xinomavro":[3,4,1,2,3,2,5,5,3,3,4,5,5],"Limniona":[4,4,2,3,3,2,4,4,4,3,4,4,4],"Mavrud":[5,3,1,3,3,2,4,5,4,4,4,4,4],"Plavac Mali":[5,3,1,4,2,2,3,4,5,5,4,3,3],"Blaufränkisch":[4,4,1,3,2,2,4,4,3,3,4,4,4],"Chardonnay":[3,3,1,3,1,3,3,0,4,4,3,4,4],"Pinot Blanc":[2,2,1,2,0,1,3,0,3,3,2,3,2],"Pinot Gris":[3,3,1,3,0,1,3,0,3,3,3,3,3],"Aligoté":[1,2,0,2,0,0,4,0,2,2,2,2,2],"Melon de Bourgogne":[1,2,0,1,0,0,4,0,2,2,2,2,2],"Riesling":[1,4,3,2,0,0,5,0,2,2,4,4,5],"Gewürztraminer":[3,5,4,4,1,2,2,0,4,4,5,3,4],"Muscat Blanc":[2,5,5,3,0,0,3,0,2,2,4,2,3],"Torrontés":[2,5,4,3,0,0,3,0,3,3,4,2,3],"Malagousia":[2,4,4,3,1,0,3,0,3,3,4,3,4],"Chenin Blanc":[2,3,2,3,1,1,5,0,3,3,3,4,4],"Sauvignon Blanc":[1,4,1,2,4,0,5,0,2,2,4,3,3],"Viognier":[3,5,4,4,0,2,2,0,4,4,4,3,4],"Marsanne":[3,3,1,3,1,2,2,0,4,4,3,3,3],"Roussanne":[3,4,2,3,2,2,3,0,4,3,4,4,4],"Clairette":[2,2,1,2,1,0,3,0,3,3,2,2,2],"Sémillon":[3,3,1,3,0,2,2,0,4,4,3,4,4],"Grüner Veltliner":[2,3,1,2,2,0,4,0,3,3,3,3,4],"Silvaner":[2,2,1,2,1,0,3,0,3,3,2,3,3],"Müller-Thurgau":[1,3,2,2,0,0,3,0,2,2,2,2,2],"Welschriesling":[1,3,2,2,0,0,4,0,2,2,2,2,2],"Furmint":[2,3,1,2,1,1,5,0,3,3,3,4,5],"Albariño":[1,4,2,2,1,0,5,0,2,3,3,3,4],"Verdejo":[2,3,1,2,2,0,4,0,3,3,3,3,3],"Godello":[2,3,1,3,1,1,4,0,3,3,3,3,4],"Encruzado":[2,3,1,3,1,2,4,0,3,3,3,4,4],"Arinto":[1,3,1,2,0,0,5,0,2,2,3,3,3],"Loureiro":[1,4,3,2,0,0,4,0,2,2,3,2,3],"Verdelho":[2,3,1,3,0,1,3,0,3,3,3,3,3],"Vermentino":[2,3,1,2,2,0,4,0,3,3,3,3,3],"Fiano":[2,4,2,3,1,1,4,0,3,3,4,4,4],"Falanghina":[2,3,2,2,0,0,4,0,3,3,3,3,3],"Greco":[2,3,1,2,1,0,4,0,3,3,3,3,4],"Garganega":[2,2,1,2,1,0,3,0,3,3,2,3,3],"Trebbiano":[1,2,0,2,0,0,3,0,2,2,2,2,2],"Verdicchio":[2,3,1,2,1,0,4,0,3,3,3,3,3],"Cortese":[1,2,1,2,0,0,4,0,2,2,2,2,2],"Arneis":[2,3,2,3,0,0,3,0,3,3,3,3,3],"Friulano":[2,3,1,2,1,0,3,0,3,3,3,3,3],"Ribolla Gialla":[1,3,1,2,1,0,4,0,2,2,3,2,3],"Malvasia":[2,4,3,3,1,0,3,0,3,3,3,3,3],"Assyrtiko":[2,4,1,2,1,0,5,0,3,3,4,4,5],"Vidiano":[2,3,2,3,1,1,3,0,3,3,3,3,3],"Chasselas":[1,2,0,2,0,0,3,0,2,2,2,2,2],"Petit Manseng":[2,4,2,4,1,1,5,0,3,3,4,4,4],"Colombard":[1,2,0,2,1,0,4,0,2,2,2,2,2],"Ugni Blanc":[1,1,0,1,0,0,5,0,1,2,1,1,1],"Mauzac":[1,2,1,2,0,0,4,0,2,2,2,2,2]};
+
+const COMMUNITIES={"Cabernet Sauvignon":0,"Merlot":0,"Petit Verdot":0,"Malbec":0,"Montepulciano":0,"Lagrein":0,"Nero d'Avola":0,"Negroamaro":0,"Sagrantino":0,"Primitivo":0,"Syrah":0,"Grenache":0,"Mourvèdre":0,"Monastrell":0,"Garnacha Tintorera":0,"Plavac Mali":0,"Zinfandel":0,"Petite Sirah":0,"Pinotage":0,"Dolcetto":0,"Carignan":0,"Bobal":0,"Tempranillo":0,"Tinta Roriz":0,"Tannat":0,"Mavrud":0,"Graciano":0,"Touriga Nacional":0,"Aglianico":0,"Baga":0,"Cabernet Franc":0,"Schiava":1,"Poulsard":1,"Frappato":1,"Kadarka":1,"Müller-Thurgau":1,"Welschriesling":1,"Albariño":1,"Arinto":1,"Loureiro":1,"Falanghina":1,"Cortese":1,"Ribolla Gialla":1,"Mauzac":1,"Aligoté":1,"Melon de Bourgogne":1,"Colombard":1,"Assyrtiko":1,"Riesling":1,"Sauvignon Blanc":1,"Furmint":1,"St. Laurent":2,"Zweigelt":2,"Counoise":2,"Blaufränkisch":2,"Limniona":2,"Sangiovese":2,"Mencía":2,"Nerello Mascalese":2,"Corvina":2,"Trousseau":2,"Cinsault":2,"Barbera":2,"Xinomavro":2,"Nebbiolo":2,"Carménère":2,"Touriga Franca":2,"Gamay":2,"Pinot Noir":2,"Marsanne":3,"Fiano":3,"Godello":3,"Pinot Gris":3,"Chardonnay":3,"Sémillon":3,"Encruzado":3,"Roussanne":3,"Verdelho":3,"Pinot Blanc":3,"Arneis":3,"Vidiano":3,"Viognier":3,"Greco":4,"Friulano":4,"Verdicchio":4,"Verdejo":4,"Vermentino":4,"Grüner Veltliner":4,"Garganega":4,"Silvaner":4,"Clairette":4,"Chenin Blanc":4,"Chasselas":5,"Trebbiano":5,"Ugni Blanc":5,"Gewürztraminer":5,"Muscat Blanc":5,"Torrontés":5,"Malagousia":5,"Malvasia":5,"Petit Manseng":5};
+
+const TASTERANK={"Sagrantino":0.3020,"Nero d'Avola":0.2849,"Lagrein":0.2748,"Negroamaro":0.2380,"Plavac Mali":0.2251,"Montepulciano":0.2108,"Petit Verdot":0.2093,"Monastrell":0.2060,"Petite Sirah":0.1768,"Pinotage":0.1710,"Malbec":0.1697,"Tannat":0.1676,"Garnacha Tintorera":0.1670,"Dolcetto":0.1659,"Mourvèdre":0.1565,"Zinfandel":0.1498,"Primitivo":0.1498,"Merlot":0.1333,"Carignan":0.1283,"Limniona":0.1223,"St. Laurent":0.1218,"Bobal":0.1212,"Grenache":0.1206,"Syrah":0.1177,"Tempranillo":0.1163,"Mavrud":0.1149,"Zweigelt":0.1134,"Counoise":0.1121,"Graciano":0.1027,"Cabernet Sauvignon":0.0940,"Tinta Roriz":0.0925,"Blaufränkisch":0.0909,"Touriga Nacional":0.0849,"Carménère":0.0839,"Aglianico":0.0787,"Baga":0.0787,"Cabernet Franc":0.0671,"Barbera":0.0650,"Corvina":0.0641,"Sangiovese":0.0632,"Mencía":0.0601,"Nebbiolo":0.0567,"Cinsault":0.0540,"Touriga Franca":0.0524,"Nerello Mascalese":0.0499,"Xinomavro":0.0481,"Pinot Noir":0.0399,"Trousseau":0.0352,"Kadarka":0.0335,"Gamay":0.0310,"Schiava":0.0219,"Poulsard":0.0219,"Frappato":0.0195,"Marsanne":0.0978,"Fiano":0.0855,"Godello":0.0826,"Pinot Gris":0.0803,"Chardonnay":0.0764,"Sémillon":0.0753,"Encruzado":0.0747,"Roussanne":0.0710,"Verdelho":0.0683,"Pinot Blanc":0.0574,"Arneis":0.0560,"Vidiano":0.0550,"Viognier":0.0400,"Greco":0.0742,"Friulano":0.0688,"Verdicchio":0.0674,"Verdejo":0.0662,"Vermentino":0.0650,"Grüner Veltliner":0.0594,"Garganega":0.0497,"Silvaner":0.0487,"Clairette":0.0437,"Chenin Blanc":0.0391,"Falanghina":0.0515,"Assyrtiko":0.0409,"Albariño":0.0387,"Loureiro":0.0324,"Ribolla Gialla":0.0318,"Cortese":0.0256,"Arinto":0.0255,"Welschriesling":0.0234,"Müller-Thurgau":0.0226,"Colombard":0.0214,"Aligoté":0.0188,"Melon de Bourgogne":0.0174,"Mauzac":0.0167,"Riesling":0.0353,"Sauvignon Blanc":0.0290,"Furmint":0.0361,"Chasselas":0.0209,"Trebbiano":0.0196,"Ugni Blanc":0.0101,"Gewürztraminer":0.0361,"Muscat Blanc":0.0302,"Torrontés":0.0296,"Malagousia":0.0297,"Malvasia":0.0315,"Petit Manseng":0.0356};
+
+const DIM_LABELS=["Color Depth","Aromatic Int.","Floral","Fruit Ripeness","Herbal/Earthy","Spice/Oak","Acidity","Tannin","Body","Alcohol","Flavor Int.","Finish","Complexity"];
+
+const COMM_META={
+  0:{label:"Full-bodied Mediterranean Reds",short:"C0 · Mediterranean Reds",color:"#A8243B",bg:"rgba(168,36,59,0.08)"},
+  1:{label:"Light / Aromatic Cross-boundary",short:"C1 · Light & Aromatic",color:"#2E7D5B",bg:"rgba(46,125,91,0.08)"},
+  2:{label:"Mid-weight Structured Reds",short:"C2 · Structured Reds",color:"#C26A2F",bg:"rgba(194,106,47,0.08)"},
+  3:{label:"Rich Textural Whites",short:"C3 · Rich Whites",color:"#B8860B",bg:"rgba(184,134,11,0.08)"},
+  4:{label:"Mineral / Crisp Whites",short:"C4 · Mineral Whites",color:"#3A7CA5",bg:"rgba(58,124,165,0.08)"},
+  5:{label:"Lean Neutral & Aromatic Whites",short:"C5 · Aromatic & Neutral",color:"#7B5EA7",bg:"rgba(123,94,167,0.08)"},
+};
+
+// ============================================================================
+// BUILD GRAPH
+// ============================================================================
+function cosineSim(a,b){let d=0,na=0,nb=0;for(let i=0;i<a.length;i++){d+=a[i]*b[i];na+=a[i]*a[i];nb+=b[i]*b[i];}return d/(Math.sqrt(na)*Math.sqrt(nb)+1e-9);}
+
+const grapes=Object.keys(PROFILES), K=5;
+const simMat={};
+for(const g of grapes){simMat[g]={};for(const h of grapes)if(g!==h)simMat[g][h]=cosineSim(PROFILES[g],PROFILES[h]);}
+
+const edgeMap={};
+for(const g of grapes){
+  const top=Object.entries(simMat[g]).sort((a,b)=>b[1]-a[1]).slice(0,K);
+  for(const [nb,w] of top){const k=[g,nb].sort().join("|||");if(!edgeMap[k]||w>edgeMap[k].weight)edgeMap[k]={source:g,target:nb,weight:w};}
+}
+
+const nodes=grapes.map(g=>({id:g,type:GRAPE_TYPE[g],community:COMMUNITIES[g],tr:TASTERANK[g]||0,profile:PROFILES[g],rank:0}));
+nodes.sort((a,b)=>b.tr-a.tr);
+nodes.forEach((n,i)=>n.rank=i+1);
+const nodeMap={};nodes.forEach(n=>nodeMap[n.id]=n);
+const edges=Object.values(edgeMap);
+
+function getNeighbors(id){const s=new Set();edges.forEach(e=>{const si=e.source?.id||e.source,ti=e.target?.id||e.target;if(si===id)s.add(ti);if(ti===id)s.add(si);});return s;}
+
+// ============================================================================
+// STATE
+// ============================================================================
+let selectedNode=null, highlightCluster=null;
+
+function resetAll(){selectedNode=null;highlightCluster=null;updateVisuals();renderDetail();updateResetBar();}
+
+// ============================================================================
+// RENDER CLUSTERS
+// ============================================================================
+const clusterList=document.getElementById('cluster-list');
+Object.entries(COMM_META).forEach(([id,m])=>{
+  const count=nodes.filter(n=>n.community===+id).length;
+  const el=document.createElement('div');
+  el.className='cluster-item';el.dataset.cid=id;
+  el.style.setProperty('--cc',m.color);el.style.setProperty('--cbg',m.bg);
+  el.innerHTML=`<span class="cluster-dot" style="background:${m.color}"></span><span class="cluster-label">${m.short}</span><span class="cluster-count">${count}</span>`;
+  el.addEventListener('click',()=>{
+    const cid=+id;
+    if(highlightCluster===cid){highlightCluster=null;}else{highlightCluster=cid;selectedNode=null;}
+    updateClusterUI();updateVisuals();renderDetail();updateResetBar();
+  });
+  clusterList.appendChild(el);
+});
+
+function updateClusterUI(){
+  document.querySelectorAll('.cluster-item').forEach(el=>{
+    el.classList.toggle('active',highlightCluster===+el.dataset.cid);
+  });
+}
+
+// ============================================================================
+// RESET BAR
+// ============================================================================
+const resetBar=document.getElementById('reset-bar');
+const filterLabel=document.getElementById('filter-label');
+document.getElementById('reset-btn').addEventListener('click',resetAll);
+
+function updateResetBar(){
+  if(selectedNode){
+    filterLabel.textContent=`Viewing: ${selectedNode.id} (#${selectedNode.rank})`;
+    resetBar.classList.add('active');
+  } else if(highlightCluster!==null){
+    filterLabel.textContent=`Community: ${COMM_META[highlightCluster].short}`;
+    resetBar.classList.add('active');
+  } else {
+    resetBar.classList.remove('active');
+  }
+}
+
+// ============================================================================
+// SEARCH
+// ============================================================================
+const searchInput=document.getElementById('search-input');
+const searchResults=document.getElementById('search-results');
+searchInput.addEventListener('input',()=>{
+  const q=searchInput.value.toLowerCase();
+  if(q.length<2){searchResults.style.display='none';return;}
+  const matches=nodes.filter(n=>n.id.toLowerCase().includes(q)).slice(0,8);
+  if(!matches.length){searchResults.style.display='none';return;}
+  searchResults.innerHTML='';searchResults.style.display='block';
+  matches.forEach(n=>{
+    const el=document.createElement('div');el.className='search-item';
+    el.innerHTML=`<span style="width:8px;height:8px;border-radius:50%;background:${COMM_META[n.community].color};flex-shrink:0"></span><span style="flex:1">${n.id}</span><span style="color:#aaa;font-size:10px">#${n.rank}</span>`;
+    el.addEventListener('click',()=>{selectNode(n);searchInput.value='';searchResults.style.display='none';});
+    searchResults.appendChild(el);
+  });
+});
+
+// ESC key
+document.addEventListener('keydown',e=>{if(e.key==='Escape')resetAll();});
+
+// ============================================================================
+// D3 GRAPH
+// ============================================================================
+const container=document.getElementById('canvas');
+const width=container.clientWidth, height=container.clientHeight;
+const svg=d3.select('#graph-svg').attr('width',width).attr('height',height);
+const g=svg.append('g');
+
+const zoom=d3.zoom().scaleExtent([0.2,8]).on('zoom',ev=>g.attr('transform',ev.transform));
+svg.call(zoom);
+
+const maxTR=d3.max(nodes,d=>d.tr),minTR=d3.min(nodes,d=>d.tr);
+const rScale=d3.scaleSqrt().domain([minTR,maxTR]).range([4,30]);
+
+const simulation=d3.forceSimulation(nodes)
+  .force('link',d3.forceLink(edges).id(d=>d.id).distance(d=>130-d.weight*70).strength(d=>d.weight*0.25))
+  .force('charge',d3.forceManyBody().strength(-100))
+  .force('center',d3.forceCenter(width/2,height/2))
+  .force('collision',d3.forceCollide().radius(d=>rScale(d.tr)+4));
+
+const link=g.append('g').selectAll('line').data(edges).join('line')
+  .attr('stroke','#888').attr('stroke-opacity',0.18).attr('stroke-width',d=>0.4+d.weight*2);
+
+const nodeG=g.append('g').selectAll('g').data(nodes).join('g').style('cursor','pointer')
+  .call(d3.drag()
+    .on('start',(ev,d)=>{if(!ev.active)simulation.alphaTarget(0.3).restart();d.fx=d.x;d.fy=d.y;})
+    .on('drag',(ev,d)=>{d.fx=ev.x;d.fy=ev.y;})
+    .on('end',(ev,d)=>{if(!ev.active)simulation.alphaTarget(0);d.fx=null;d.fy=null;})
+  );
+
+nodeG.append('circle').attr('r',d=>rScale(d.tr))
+  .attr('fill',d=>COMM_META[d.community]?.color||'#888')
+  .attr('stroke','#fff').attr('stroke-width',1.5).attr('opacity',0.88);
+
+nodeG.filter(d=>d.rank<=30).append('text').text(d=>d.id)
+  .attr('text-anchor','middle').attr('dy',d=>-rScale(d.tr)-5)
+  .attr('font-size',d=>d.rank<=8?12:d.rank<=18?10:8.5)
+  .attr('font-weight',d=>d.rank<=10?700:500)
+  .attr('fill','#2a2a2a').attr('font-family',"'DM Sans', sans-serif").attr('pointer-events','none');
+
+simulation.on('tick',()=>{
+  link.attr('x1',d=>d.source.x).attr('y1',d=>d.source.y).attr('x2',d=>d.target.x).attr('y2',d=>d.target.y);
+  nodeG.attr('transform',d=>`translate(${d.x},${d.y})`);
+});
+
+// Click handlers
+nodeG.on('click',(ev,d)=>{ev.stopPropagation();selectNode(selectedNode?.id===d.id?null:d);});
+svg.on('click',()=>resetAll());
+
+// Hover tooltip
+const tooltip=document.getElementById('tooltip');
+nodeG.on('mouseenter',(ev,d)=>{
+  if(selectedNode)return;
+  tooltip.classList.add('visible');
+  tooltip.innerHTML=`<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px"><span style="width:10px;height:10px;border-radius:50%;background:${COMM_META[d.community].color}"></span><span class="tt-name">${d.id}</span></div><div class="tt-info">Rank #${d.rank} · TasteRank ${d.tr.toFixed(4)}<br>${d.type[0].toUpperCase()+d.type.slice(1)} · ${COMM_META[d.community].short}</div>`;
+}).on('mouseleave',()=>{tooltip.classList.remove('visible');});
+
+// Fit to view after stabilization
+setTimeout(()=>{
+  const b=g.node().getBBox();
+  const dx=b.width,dy=b.height,x=b.x+dx/2,y=b.y+dy/2;
+  const s=0.85/Math.max(dx/width,dy/height);
+  svg.transition().duration(750).call(zoom.transform,d3.zoomIdentity.translate(width/2-s*x,height/2-s*y).scale(s));
+},2500);
+
+// ============================================================================
+// SELECT / UPDATE VISUALS
+// ============================================================================
+function selectNode(n){selectedNode=n;highlightCluster=null;updateClusterUI();updateVisuals();renderDetail();updateResetBar();}
+
+function updateVisuals(){
+  const active=selectedNode;
+  const nbs=active?getNeighbors(active.id):new Set();
+
+  nodeG.select('circle').transition().duration(200)
+    .attr('opacity',d=>{
+      if(highlightCluster!==null&&d.community!==highlightCluster)return 0.06;
+      if(active){if(d.id===active.id)return 1;if(nbs.has(d.id))return 0.92;return 0.07;}
+      return 0.88;
+    })
+    .attr('stroke',d=>{
+      if(active&&d.id===active.id)return '#000';
+      if(active&&nbs.has(d.id))return '#333';
+      return '#fff';
+    })
+    .attr('stroke-width',d=>{
+      if(active&&d.id===active.id)return 3.5;
+      if(active&&nbs.has(d.id))return 2;
+      return 1.5;
+    });
+
+  // Static labels
+  nodeG.selectAll('text:not(.dyn)').transition().duration(200)
+    .attr('opacity',d=>{
+      if(highlightCluster!==null&&d.community!==highlightCluster)return 0.04;
+      if(active){if(d.id===active.id||nbs.has(d.id))return 1;return 0.04;}
+      return 1;
+    });
+
+  // Dynamic labels
+  nodeG.each(function(d){
+    const sel=d3.select(this);
+    const show=active?(d.id===active.id||nbs.has(d.id)):(highlightCluster!==null?d.community===highlightCluster:false);
+    if(show&&d.rank>30&&!sel.select('.dyn').node()){
+      sel.append('text').attr('class','dyn').text(d.id)
+        .attr('text-anchor','middle').attr('dy',-rScale(d.tr)-5)
+        .attr('font-size',9).attr('font-weight',500).attr('fill','#2a2a2a')
+        .attr('font-family',"'DM Sans', sans-serif").attr('pointer-events','none')
+        .attr('opacity',0).transition().duration(250).attr('opacity',1);
+    }
+    if(!show)sel.selectAll('.dyn').transition().duration(150).attr('opacity',0).remove();
+  });
+
+  link.transition().duration(200)
+    .attr('stroke-opacity',d=>{
+      const si=d.source.id,ti=d.target.id;
+      if(highlightCluster!==null){
+        const sc=nodeMap[si]?.community,tc=nodeMap[ti]?.community;
+        if(sc===highlightCluster&&tc===highlightCluster)return 0.5;
+        if(sc===highlightCluster||tc===highlightCluster)return 0.08;
+        return 0.01;
+      }
+      if(active){if(si===active.id||ti===active.id)return 0.75;return 0.015;}
+      return 0.18;
+    })
+    .attr('stroke-width',d=>{
+      const si=d.source.id,ti=d.target.id;
+      if(active&&(si===active.id||ti===active.id))return 1.5+d.weight*3;
+      return 0.4+d.weight*2;
+    })
+    .attr('stroke',d=>{
+      const si=d.source.id,ti=d.target.id;
+      if(active&&(si===active.id||ti===active.id))return COMM_META[active.community]?.color||'#888';
+      if(highlightCluster!==null){
+        const sc=nodeMap[si]?.community,tc=nodeMap[ti]?.community;
+        if(sc===highlightCluster&&tc===highlightCluster)return COMM_META[highlightCluster].color;
+      }
+      return '#888';
+    });
+}
+
+// ============================================================================
+// DETAIL PANEL
+// ============================================================================
+function renderDetail(){
+  const det=document.getElementById('detail');
+
+  if(selectedNode){
+    const n=selectedNode;
+    const nbs=edges.filter(e=>(e.source.id||e.source)===n.id||(e.target.id||e.target)===n.id)
+      .map(e=>{const oid=(e.source.id||e.source)===n.id?(e.target.id||e.target):(e.source.id||e.source);return{...nodeMap[oid],sim:e.weight};})
+      .sort((a,b)=>b.sim-a.sim);
+
+    let html=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+      <span style="width:14px;height:14px;border-radius:50%;background:${COMM_META[n.community].color}"></span>
+      <h2>${n.id}</h2></div>
+      <div class="detail-meta"><span>Rank <strong>#${n.rank}</strong></span><span>TasteRank <strong>${n.tr.toFixed(4)}</strong></span><span style="text-transform:capitalize">${n.type}</span></div>
+      <div class="section-label">SAT Profile</div><div style="margin-bottom:14px">`;
+    DIM_LABELS.forEach((l,i)=>{
+      html+=`<div class="profile-row"><span class="profile-label">${l}</span><div class="profile-bar-bg"><div class="profile-bar" style="width:${n.profile[i]/5*100}%;background:${COMM_META[n.community].color}"></div></div><span class="profile-val">${n.profile[i]}</span></div>`;
+    });
+    html+=`</div><div class="section-label">Connected Varieties (${nbs.length})</div>`;
+    nbs.forEach(nb=>{
+      html+=`<div class="list-item" data-nid="${nb.id}"><span class="list-dot" style="background:${COMM_META[nb.community].color}"></span><span class="list-name">${nb.id}</span><span class="list-meta">cos ${nb.sim.toFixed(3)}</span><span class="list-rank">#${nb.rank}</span></div>`;
+    });
+    det.innerHTML=html;
+    det.querySelectorAll('.list-item[data-nid]').forEach(el=>{
+      el.addEventListener('click',ev=>{ev.stopPropagation();selectNode(nodeMap[el.dataset.nid]);});
+    });
+
+  } else if(highlightCluster!==null){
+    const cn=nodes.filter(n=>n.community===highlightCluster).sort((a,b)=>a.rank-b.rank);
+    const m=COMM_META[highlightCluster];
+    let html=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+      <span style="width:12px;height:12px;border-radius:3px;background:${m.color}"></span>
+      <h2 style="font-size:14px;font-family:'DM Sans';font-weight:600">${m.label}</h2></div>
+      <p style="font-size:11px;color:#888;margin-bottom:10px">${cn.length} varieties</p>`;
+    cn.forEach(n=>{
+      html+=`<div class="list-item" data-nid="${n.id}"><span class="list-dot" style="background:${m.color}"></span><span class="list-name">${n.id}</span><span class="list-meta" style="text-transform:capitalize">${n.type}</span><span class="list-rank">#${n.rank}</span></div>`;
+    });
+    det.innerHTML=html;
+    det.querySelectorAll('.list-item[data-nid]').forEach(el=>{
+      el.addEventListener('click',ev=>{ev.stopPropagation();selectNode(nodeMap[el.dataset.nid]);highlightCluster=null;updateClusterUI();updateResetBar();});
+    });
+
+  } else {
+    let html=`<div class="section-label">Top 15 by TasteRank</div>`;
+    nodes.filter(n=>n.rank<=15).sort((a,b)=>a.rank-b.rank).forEach(n=>{
+      html+=`<div class="list-item" data-nid="${n.id}"><span class="rank-num">#${n.rank}</span><span class="list-dot" style="background:${COMM_META[n.community].color}"></span><span class="list-name">${n.id}</span><span class="list-meta">${n.tr.toFixed(3)}</span></div>`;
+    });
+    html+=`<div class="hint-box"><strong>Interactions</strong><br>Click a node to inspect its SAT profile and connections.<br>Click a community to isolate it.<br>Press <kbd>Esc</kbd> or click ✕ Reset to return to full view.<br>Scroll to zoom · drag to pan · drag nodes to rearrange.</div>`;
+    det.innerHTML=html;
+    det.querySelectorAll('.list-item[data-nid]').forEach(el=>{
+      el.addEventListener('click',ev=>{ev.stopPropagation();selectNode(nodeMap[el.dataset.nid]);});
+    });
+  }
+}
+
+renderDetail();
+</script>
+</body>
+</html>
