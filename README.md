@@ -27,7 +27,8 @@ An interactive force-directed network visualization of wine grape variety simila
 | `index.html` | Self-contained interactive network visualization |
 | `TasteRank_Summary.pdf` | Overview of methodology and key findings |
 | `TasteRank_Technical_Appendix.pdf` | Full technical details: graph construction, centrality math, community detection |
-| `TasteRank_Data_Appendix.pdf` | Complete SAT profiles, rankings, and similarity matrices |
+| `TasteRank_Data_Appendix.pdf` | Complete SAT profiles, rankings, and community assignments |
+| `TasteRank_Grape_Reference.pdf` | One-paragraph profiles for all 101 grape varieties |
 | `README.md` | This file |
 | `LICENSE` | CC BY-NC 4.0 license |
 
