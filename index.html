@@ -124,6 +124,36 @@
     padding: 6px 10px; border-radius: 6px;
   }
   kbd { background: #eee; padding: 1px 5px; border-radius: 3px; font-family: 'DM Sans', sans-serif; font-size: 9px; }
+
+  /* ── Colophon at bottom of panel ── */
+  #colophon {
+    flex-shrink: 0;
+    padding: 14px 18px 16px;
+    border-top: 1px solid #e8e2db;
+    background: #faf8f5;
+    text-align: center;
+  }
+  #colophon .motto {
+    font-family: 'DM Serif Display', serif;
+    font-style: italic;
+    font-size: 13px;
+    color: #7B2D26;
+    margin-bottom: 10px;
+    letter-spacing: 0.01em;
+  }
+  #colophon .links {
+    display: flex; justify-content: center; gap: 14px; flex-wrap: wrap;
+    font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; font-weight: 600;
+    margin-bottom: 8px;
+  }
+  #colophon .links a {
+    color: #7B2D26; text-decoration: none; transition: opacity .15s;
+  }
+  #colophon .links a:hover { opacity: 0.6; }
+  #colophon .copyright {
+    font-size: 8.5px; letter-spacing: 0.2em;
+    text-transform: uppercase; font-weight: 500; color: #a8a8a8;
+  }
 </style>
 </head>
 <body>
@@ -179,6 +209,16 @@
     </div>
 
     <div id="detail"></div>
+    <div id="colophon">
+      <div class="motto">— in vino, cognitio —</div>
+      <div class="links">
+        <a href="https://jskarabot18.github.io/vinotheca/">Vinotheca</a>
+        <a href="https://github.com/jskarabot18/tasterank-explorer" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://github.com/jskarabot18/tasterank-explorer/blob/main/LICENSE" target="_blank" rel="noopener">CC BY-NC 4.0</a>
+        <a href="mailto:skarabot@yahoo.com">Contact</a>
+      </div>
+      <div class="copyright">© Jure Skarabot · MMXXVI</div>
+    </div>
   </div>
 
   <!-- GRAPH -->
