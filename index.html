@@ -590,6 +590,7 @@ function renderDetail(){
     nodes.filter(n=>n.rank<=15).sort((a,b)=>a.rank-b.rank).forEach(n=>{
       html+=`<div class="list-item" data-nid="${n.id}"><span class="rank-num">#${n.rank}</span><span class="list-dot" style="background:${COMM_META[n.community].color}"></span><span class="list-name">${n.id}</span><span class="list-meta">${n.tr.toFixed(3)}</span></div>`;
     });
+    html+=`<div class="hint-box"><strong>Interactions</strong><br>Click a node to inspect its SAT profile and connections.<br>Click a community to isolate it.<br>Press <kbd>Esc</kbd> or click ✕ Reset to return to full view.<br>Scroll to zoom · drag to pan · drag nodes to rearrange.</div>`;
     det.innerHTML=html;
     det.querySelectorAll('.list-item[data-nid]').forEach(el=>{
       el.addEventListener('click',ev=>{ev.stopPropagation();selectNode(nodeMap[el.dataset.nid]);});
