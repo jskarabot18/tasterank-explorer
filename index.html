@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TasteRank Explorer — Wine Grape Similarity Network</title>
+<title>Grape Affinities — A Wine Grape Similarity Network</title>
+<meta name="description" content="A map of how wine grape varieties relate to one another by sensory character. Find the lesser-known grapes closest to those you already love. Built on the TasteRank similarity engine.">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
 <style>
@@ -13,7 +14,7 @@
   #app { display: flex; width: 100%; height: 100%; }
 
   /* LEFT PANEL */
-  #panel { width: 310px; min-width: 310px; background: #fff; border-right: 1px solid #e8e2db; display: flex; flex-direction: column; overflow: hidden; }
+  #panel { width: 310px; min-width: 310px; background: #fff; border-right: 1px solid #e8e2db; display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden; }
   #panel-header { padding: 20px 18px 14px; border-bottom: 1px solid #e8e2db; }
   #panel-header h1 { font-family: 'DM Serif Display', serif; font-size: 24px; color: #7B2D26; letter-spacing: -0.5px; }
   #panel-header .sub { font-size: 11px; color: #888; margin-top: 4px; line-height: 1.4; }
@@ -21,14 +22,13 @@
 
   /* Downloads */
   #downloads { padding: 8px 18px 4px; border-bottom: 1px solid #e8e2db; }
-  .dl-row { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+  .dl-row { display: flex; gap: 6px; flex-wrap: wrap; }
   .dl-btn {
-    display: flex; align-items: center; justify-content: center; gap: 5px;
+    flex: 1; min-width: 80px; display: flex; align-items: center; justify-content: center; gap: 5px;
     padding: 6px 8px; border: 1px solid #d4c4be; border-radius: 6px; background: #faf8f5;
     font-size: 10px; font-family: 'DM Sans', sans-serif; color: #7B2D26; cursor: pointer;
     text-decoration: none; font-weight: 600; transition: all 0.15s; line-height: 1.2;
   }
-  .dl-btn.wide { grid-column: 1 / -1; }
   .dl-btn:hover { background: #7B2D26; color: #fff; border-color: #7B2D26; }
   .dl-btn svg { width: 12px; height: 12px; flex-shrink: 0; }
   .dl-btn:hover svg path { stroke: #fff; }
@@ -73,7 +73,7 @@
   .cluster-count { font-size: 10px; color: #aaa; }
 
   /* Detail / list area */
-  #detail { flex: 1; overflow-y: auto; overflow-x: hidden; border-top: 1px solid #e8e2db; padding: 14px 18px; }
+  #detail { border-top: 1px solid #e8e2db; padding: 14px 18px; }
   #detail h2 { font-family: 'DM Serif Display', serif; font-size: 18px; color: #1a1a1a; }
   .detail-meta { display: flex; gap: 12px; font-size: 11px; color: #666; margin: 4px 0 12px; }
   .detail-meta strong { color: #7B2D26; }
@@ -125,34 +125,77 @@
   }
   kbd { background: #eee; padding: 1px 5px; border-radius: 3px; font-family: 'DM Sans', sans-serif; font-size: 9px; }
 
-  /* ── Colophon at bottom of panel ── */
+  /* Handhold paragraph — accessible explainer */
+  #handhold {
+    padding: 14px 18px 12px;
+    border-bottom: 1px solid #e8e2db;
+    font-size: 11.5px;
+    color: #555;
+    line-height: 1.55;
+  }
+  #handhold p { margin-bottom: 8px; }
+  #handhold p:last-child { margin-bottom: 0; }
+  #handhold .gloss {
+    font-family: 'DM Serif Display', serif;
+    font-style: italic;
+    color: #7B2D26;
+    font-size: 11px;
+    line-height: 1.5;
+  }
+
+  /* Engine note — small line preserving TasteRank identity */
+  #engine-note {
+    padding: 10px 18px;
+    border-bottom: 1px solid #e8e2db;
+    font-size: 10.5px;
+    color: #888;
+    line-height: 1.5;
+    font-style: italic;
+  }
+  #engine-note a {
+    color: #7B2D26;
+    text-decoration: none;
+    font-style: normal;
+    font-weight: 600;
+  }
+  #engine-note a:hover { text-decoration: underline; }
+
+  /* Colophon */
   #colophon {
-    flex-shrink: 0;
-    padding: 14px 18px 16px;
+    padding: 16px 18px 18px;
     border-top: 1px solid #e8e2db;
-    background: #faf8f5;
     text-align: center;
+    background: #faf8f5;
   }
   #colophon .motto {
     font-family: 'DM Serif Display', serif;
     font-style: italic;
-    font-size: 13px;
     color: #7B2D26;
+    font-size: 12px;
     margin-bottom: 10px;
-    letter-spacing: 0.01em;
+    letter-spacing: 0.2px;
   }
   #colophon .links {
-    display: flex; justify-content: center; gap: 14px; flex-wrap: wrap;
-    font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; font-weight: 600;
-    margin-bottom: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px 14px;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
   }
   #colophon .links a {
-    color: #7B2D26; text-decoration: none; transition: opacity .15s;
+    color: #7B2D26;
+    text-decoration: none;
+    font-weight: 600;
+    transition: opacity 0.15s;
   }
-  #colophon .links a:hover { opacity: 0.6; }
+  #colophon .links a:hover { opacity: 0.65; }
   #colophon .copyright {
-    font-size: 8.5px; letter-spacing: 0.2em;
-    text-transform: uppercase; font-weight: 500; color: #a8a8a8;
+    font-size: 10px;
+    color: #aaa;
+    letter-spacing: 0.5px;
   }
 </style>
 </head>
@@ -162,9 +205,17 @@
   <!-- LEFT PANEL -->
   <div id="panel">
     <div id="panel-header">
-      <h1>TasteRank</h1>
-      <div class="sub">Eigenvector Centrality on WSET SAT Profiles</div>
+      <h1>Grape Affinities</h1>
+      <div class="sub">A network of 101 wine grapes, arranged by sensory kinship.</div>
       <div class="meta">101 varieties · 341 edges · 6 communities</div>
+    </div>
+
+    <div id="handhold">
+      <p>Each grape sits near the grapes whose sensory character &mdash; aroma, flavor, body, and finish &mdash; most closely resembles its own. The map is built from a systematic sensory description of each variety. Six natural communities emerge from the data. Click any grape to see its nearest neighbors.</p>
+    </div>
+
+    <div id="engine-note">
+      Built on the <a href="TasteRank_Methods_Primer.pdf" target="_blank">TasteRank</a> similarity engine &mdash; the underlying measure of how each variety&rsquo;s sensory signature compares to every other.
     </div>
 
     <div id="downloads">
@@ -186,7 +237,7 @@
           <svg viewBox="0 0 16 16"><path d="M8 1v9m0 0L5 7m3 3l3-3M3 13h10" stroke="#7B2D26" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
           Data
         </a>
-        <a class="dl-btn wide" href="TasteRank_Grape_Reference.pdf" target="_blank">
+        <a class="dl-btn" href="TasteRank_Grape_Reference.pdf" target="_blank">
           <svg viewBox="0 0 16 16"><path d="M8 1v9m0 0L5 7m3 3l3-3M3 13h10" stroke="#7B2D26" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
           Grapes
         </a>
@@ -209,15 +260,16 @@
     </div>
 
     <div id="detail"></div>
+
     <div id="colophon">
-      <div class="motto">— in vino, cognitio —</div>
+      <div class="motto">&mdash; in vino, cognitio &mdash;</div>
       <div class="links">
         <a href="https://jskarabot18.github.io/vinotheca/">Vinotheca</a>
-        <a href="https://github.com/jskarabot18/tasterank-explorer" target="_blank" rel="noopener">GitHub</a>
-        <a href="https://github.com/jskarabot18/tasterank-explorer/blob/main/LICENSE" target="_blank" rel="noopener">CC BY-NC 4.0</a>
+        <a href="https://github.com/jskarabot18/tasterank-explorer">GitHub</a>
+        <a href="https://github.com/jskarabot18/tasterank-explorer/blob/main/LICENSE">CC BY-NC 4.0</a>
         <a href="mailto:skarabot@yahoo.com">Contact</a>
       </div>
-      <div class="copyright">© Jure Skarabot · MMXXVI</div>
+      <div class="copyright">&copy; Jure Skarabot &middot; MMXXVI</div>
     </div>
   </div>
 
@@ -538,7 +590,6 @@ function renderDetail(){
     nodes.filter(n=>n.rank<=15).sort((a,b)=>a.rank-b.rank).forEach(n=>{
       html+=`<div class="list-item" data-nid="${n.id}"><span class="rank-num">#${n.rank}</span><span class="list-dot" style="background:${COMM_META[n.community].color}"></span><span class="list-name">${n.id}</span><span class="list-meta">${n.tr.toFixed(3)}</span></div>`;
     });
-    html+=`<div class="hint-box"><strong>Interactions</strong><br>Click a node to inspect its SAT profile and connections.<br>Click a community to isolate it.<br>Press <kbd>Esc</kbd> or click ✕ Reset to return to full view.<br>Scroll to zoom · drag to pan · drag nodes to rearrange.</div>`;
     det.innerHTML=html;
     det.querySelectorAll('.list-item[data-nid]').forEach(el=>{
       el.addEventListener('click',ev=>{ev.stopPropagation();selectNode(nodeMap[el.dataset.nid]);});
