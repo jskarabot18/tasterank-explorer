@@ -93,7 +93,7 @@
   .list-meta { font-size: 9px; color: #aaa; }
   .list-rank { font-size: 9px; color: #bbb; }
 
-  .rank-num { width: 18px; font-size: 10px; color: #7B2D26; font-weight: 700; text-align: right; flex-shrink: 0; }
+  .rank-num { width: 30px; padding-right: 4px; font-size: 10px; color: #7B2D26; font-weight: 700; text-align: right; flex-shrink: 0; }
 
   .hint-box {
     margin-top: 16px; padding: 12px; background: #faf8f5; border-radius: 8px;
@@ -216,6 +216,55 @@
 
   /* Hide the Communities section when a variety is selected, to free space */
   #app.variety-selected #clusters { display: none; }
+
+  /* About block — short editorial orientation on the landing view */
+  .about-block {
+    margin: 0 0 18px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #ece5dd;
+  }
+  .about-block .about-eyebrow {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 1.6px;
+    color: #7B2D26; margin-bottom: 8px;
+  }
+  .about-block h3 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 17px; line-height: 1.2;
+    color: #1a1410; margin-bottom: 8px;
+    letter-spacing: -0.2px; font-weight: 400;
+  }
+  .about-block p {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11.5px; line-height: 1.6;
+    color: #4a4038; margin-bottom: 8px;
+    text-align: justify; hyphens: auto; -webkit-hyphens: auto;
+  }
+  .about-block p:last-child { margin-bottom: 0; }
+  .about-block em { font-style: italic; color: #6b5d53; }
+
+  /* Footer — attribution and license, always visible */
+  #panel-footer {
+    padding: 10px 18px 12px;
+    border-top: 1px solid #e8e2db;
+    background: #fdfbf7;
+    flex-shrink: 0;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 9.5px; line-height: 1.55;
+    color: #8a7d73;
+    text-align: center;
+  }
+  #panel-footer a { color: #8a7d73; text-decoration: none; border-bottom: 1px dotted #c5b7ab; }
+  #panel-footer a:hover { color: #7B2D26; border-bottom-color: #7B2D26; }
+  #panel-footer .motto {
+    font-family: 'DM Serif Display', serif;
+    font-style: italic;
+    font-size: 10px;
+    color: #a89786;
+    letter-spacing: 0.3px;
+    margin-bottom: 3px;
+  }
 </style>
 </head>
 <body>
@@ -271,6 +320,14 @@
     </div>
 
     <div id="detail"></div>
+
+    <div id="panel-footer">
+      <div class="motto">in vino, cognitio</div>
+      <div>
+        Part of <a href="https://jskarabot18.github.io/vinotheca/">Vinotheca</a> · by Jure Skarabot<br>
+        Licensed <a href="https://creativecommons.org/licenses/by-nc/4.0/">CC BY-NC 4.0</a>
+      </div>
+    </div>
   </div>
 
   <!-- GRAPH -->
@@ -626,7 +683,13 @@ function renderDetail(){
     });
 
   } else {
-    let html=`<div class="hint-box" style="margin-top:0;margin-bottom:14px"><strong>Interactions</strong><br>Click a node to read its profile and description.<br>Click a community to isolate it.<br>Press <kbd>Esc</kbd> or click ✕ Reset to return to full view.<br>Scroll to zoom · drag to pan · drag nodes to rearrange.</div>`;
+    let html=`<div class="about-block">
+      <div class="about-eyebrow">About</div>
+      <h3>A similarity network of 101 grape varieties.</h3>
+      <p>Each variety is profiled across thirteen sensory dimensions — color, aroma, fruit, acidity, tannin, body, and so on — drawn from established tasting methodology. Cosine similarity between these profiles forms the edges of the network, and the nodes sized and ranked by <em>eigenvector centrality</em>: a grape scores higher when it resembles other grapes that are themselves central.</p>
+      <p>Six communities emerge from the data, grouping varieties by sensory logic rather than geography. Click a node to read its profile. Click a community to isolate it.</p>
+    </div>`;
+    html+=`<div class="hint-box" style="margin-top:0;margin-bottom:14px"><strong>Interactions</strong><br>Click a node to read its profile and description.<br>Click a community to isolate it.<br>Press <kbd>Esc</kbd> or click ✕ Reset to return to full view.<br>Scroll to zoom · drag to pan · drag nodes to rearrange.</div>`;
     html+=`<div class="section-label">All Varieties by TasteRank</div>`;
     nodes.slice().sort((a,b)=>a.rank-b.rank).forEach(n=>{
       html+=`<div class="list-item" data-nid="${n.id}"><span class="rank-num">#${n.rank}</span><span class="list-dot" style="background:${COMM_META[n.community].color}"></span><span class="list-name">${n.id}</span><span class="list-meta">${n.tr.toFixed(3)}</span></div>`;
