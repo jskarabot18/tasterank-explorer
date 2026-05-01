@@ -10,31 +10,36 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { width: 100%; height: 100%; overflow: hidden; font-family: 'DM Sans', system-ui, sans-serif; background: #FAF8F5; }
 
-  #app { display: flex; width: 100%; height: 100%; }
+  /* Layout: masthead spans full width on top; rail and graph below.
+     Mirrors the atlases' grid (auto/1fr rows × panel/1fr columns). */
+  #app { display: grid; grid-template-columns: 310px 1fr; grid-template-rows: auto 1fr; width: 100%; height: 100%; }
+
+  /* Masthead — top bar, full-width */
+  #masthead { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; padding: 18px 28px; background: #FAF8F5; border-bottom: 1px solid #e8e2db; z-index: 1100; position: relative; }
+  #masthead h1 { font-family: 'DM Serif Display', serif; font-size: 22px; color: #7B2D26; letter-spacing: -0.5px; line-height: 1; }
+  #masthead-meta { display: flex; align-items: center; gap: 14px; font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase; }
+  #masthead-meta a, #masthead-meta button { color: #888; text-decoration: none; border: none; background: transparent; padding: 0; font: inherit; cursor: pointer; letter-spacing: inherit; text-transform: inherit; border-bottom: 1px solid transparent; padding-bottom: 1px; transition: color .15s, border-color .15s; }
+  #masthead-meta a:hover, #masthead-meta button:hover { color: #7B2D26; border-bottom-color: #7B2D26; }
+  #masthead-meta .divider { color: #ccc; }
+
+  /* Documentation dropdown — opens below the meta link */
+  .docs-dropdown { position: relative; }
+  .docs-menu { display: none; position: absolute; right: 0; top: calc(100% + 6px); min-width: 240px; background: #fff; border: 1px solid #e8e2db; border-radius: 8px; box-shadow: 0 6px 22px rgba(40,20,10,0.08); z-index: 1200; padding: 6px 0; }
+  .docs-menu.is-open { display: block; }
+  .docs-menu a { display: flex; align-items: flex-start; gap: 10px; padding: 9px 14px; font-size: 12px; color: #333; text-decoration: none; border: none; text-transform: none; letter-spacing: normal; transition: background .12s; }
+  .docs-menu a:hover { background: #faf8f5; color: #7B2D26; }
+  .docs-menu a + a { border-top: 1px solid #f3eee8; }
+  .docs-menu svg { width: 13px; height: 13px; flex-shrink: 0; margin-top: 2px; }
+  .docs-menu .docs-name { flex: 1; font-weight: 500; }
+  .docs-menu .docs-blurb { display: block; font-size: 10.5px; color: #999; margin-top: 1px; font-weight: 400; }
 
   /* LEFT PANEL */
-  #panel { width: 310px; min-width: 310px; background: #fff; border-right: 1px solid #e8e2db; display: flex; flex-direction: column; overflow: hidden; }
-  #panel-header { padding: 20px 18px 14px; border-bottom: 1px solid #e8e2db; }
-  #panel-header h1 { font-family: 'DM Serif Display', serif; font-size: 24px; color: #7B2D26; letter-spacing: -0.5px; }
-  #panel-header .sub { font-size: 11px; color: #888; margin-top: 4px; line-height: 1.4; }
-  #panel-header .meta { font-size: 10px; color: #aaa; margin-top: 2px; }
+  #panel { background: #fff; border-right: 1px solid #e8e2db; display: flex; flex-direction: column; overflow: hidden; }
+  /* Italic intro line at top of rail (replaces old #panel-header block) */
+  #panel-sub { padding: 14px 18px 12px; border-bottom: 1px solid #e8e2db; font-size: 11.5px; color: #888; line-height: 1.5; font-style: italic; }
+  #panel-sub strong { color: #5a5a5a; font-weight: 600; font-style: normal; }
 
-  /* Downloads */
-  #downloads { padding: 8px 18px 4px; border-bottom: 1px solid #e8e2db; }
-  .dl-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; row-gap: 6px; }
-  .dl-btn {
-    grid-column: span 2;
-    display: flex; align-items: center; justify-content: center; gap: 5px;
-    padding: 6px 8px; border: 1px solid #d4c4be; border-radius: 6px; background: #faf8f5;
-    font-size: 10px; font-family: 'DM Sans', sans-serif; color: #7B2D26; cursor: pointer;
-    text-decoration: none; font-weight: 600; transition: all 0.15s; line-height: 1.2;
-  }
-  /* Center the two bottom buttons (4th and 5th) by offsetting the 4th to column 2 */
-  .dl-btn:nth-child(4) { grid-column: 2 / span 2; }
-  .dl-btn:nth-child(5) { grid-column: 4 / span 2; }
-  .dl-btn:hover { background: #7B2D26; color: #fff; border-color: #7B2D26; }
-  .dl-btn svg { width: 12px; height: 12px; flex-shrink: 0; }
-  .dl-btn:hover svg path { stroke: #fff; }
+
 
   #search-box { padding: 10px 18px; }
   #search-input {
@@ -249,66 +254,57 @@
   .about-block em { font-style: italic; color: #6b5d53; }
 
   /* Footer — attribution and license, always visible */
-  #panel-footer {
-    padding: 10px 18px 12px;
-    border-top: 1px solid #e8e2db;
-    background: #fdfbf7;
-    flex-shrink: 0;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 9.5px; line-height: 1.55;
-    color: #8a7d73;
-    text-align: center;
-  }
-  #panel-footer a { color: #8a7d73; text-decoration: none; border-bottom: 1px dotted #c5b7ab; }
-  #panel-footer a:hover { color: #7B2D26; border-bottom-color: #7B2D26; }
-  #panel-footer .motto {
-    font-family: 'DM Serif Display', serif;
-    font-style: italic;
-    font-size: 10px;
-    color: #a89786;
-    letter-spacing: 0.3px;
-    margin-bottom: 3px;
-  }
+  /* Standardized atlas footer (matches Grand Cru / Estate Atlas) */
+  #atlas-footer { flex-shrink: 0; border-top: 1px solid #e8e2db; padding: 14px 18px 14px; background: #fff; font-family: 'DM Sans', system-ui, sans-serif; font-size: 11px; line-height: 1.55; color: #888; }
+  .atlas-footer-motto { text-align: center; font-family: 'DM Serif Display', serif; font-size: 13px; color: #7B2D26; letter-spacing: 0.02em; margin: 0 0 10px; font-style: italic; }
+  .atlas-footer-motto .fleuron { color: #a86259; font-style: normal; margin: 0 6px; font-size: 12px; }
+  .atlas-footer-links { display: flex; flex-wrap: wrap; gap: 3px 12px; justify-content: center; margin: 0 0 10px; }
+  .atlas-footer-links a { color: #888; text-decoration: none; border-bottom: 1px solid transparent; transition: color .15s, border-color .15s; font-size: 11px; }
+  .atlas-footer-links a:hover { color: #7B2D26; border-bottom-color: #7B2D26; }
+  .atlas-footer-copyright { text-align: center; font-style: italic; font-size: 10.5px; color: #aaa; letter-spacing: 0.04em; margin: 0; }
 </style>
 </head>
 <body>
 <div id="app">
 
-  <!-- LEFT PANEL -->
-  <div id="panel">
-    <div id="panel-header">
-      <h1>TasteRank</h1>
-      <div class="sub">Eigenvector Centrality on Sensory Profiles</div>
-      <div class="meta">101 varieties · 341 edges · 6 communities</div>
-    </div>
-
-    <div id="downloads">
-      <div class="section-label">Documentation</div>
-      <div class="dl-row">
-        <a class="dl-btn" href="TasteRank_Summary.pdf#page=1" target="_blank">
+<header id="masthead">
+  <h1>TasteRank Explorer</h1>
+  <div id="masthead-meta">
+    <a href="https://jskarabot18.github.io/vinotheca/">Vinotheca</a>
+    <span class="divider">·</span>
+    <span class="docs-dropdown">
+      <button type="button" id="docs-toggle" aria-haspopup="true" aria-expanded="false">Documentation ▾</button>
+      <div class="docs-menu" id="docs-menu" role="menu">
+        <a href="TasteRank_Summary.pdf#page=1&view=Fit&toolbar=1&navpanes=0" target="_blank" rel="noopener">
           <svg viewBox="0 0 16 16"><path d="M8 1v9m0 0L5 7m3 3l3-3M3 13h10" stroke="#7B2D26" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Summary
+          <span><span class="docs-name">Summary</span><span class="docs-blurb">Plain-language overview</span></span>
         </a>
-        <a class="dl-btn" href="TasteRank_Technical_Appendix.pdf#page=1" target="_blank">
+        <a href="TasteRank_Technical_Appendix.pdf#page=1&view=Fit&toolbar=1&navpanes=0" target="_blank" rel="noopener">
           <svg viewBox="0 0 16 16"><path d="M8 1v9m0 0L5 7m3 3l3-3M3 13h10" stroke="#7B2D26" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Technical
+          <span><span class="docs-name">Technical Appendix</span><span class="docs-blurb">Algorithms and computation</span></span>
         </a>
-        <a class="dl-btn" href="TasteRank_Methods_Primer.pdf#page=1" target="_blank">
+        <a href="TasteRank_Methods_Primer.pdf#page=1&view=Fit&toolbar=1&navpanes=0" target="_blank" rel="noopener">
           <svg viewBox="0 0 16 16"><path d="M8 1v9m0 0L5 7m3 3l3-3M3 13h10" stroke="#7B2D26" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Methods
+          <span><span class="docs-name">Methods Primer</span><span class="docs-blurb">Network theory background</span></span>
         </a>
-        <a class="dl-btn" href="TasteRank_Data_Appendix.pdf#page=1" target="_blank">
+        <a href="TasteRank_Data_Appendix.pdf#page=1&view=Fit&toolbar=1&navpanes=0" target="_blank" rel="noopener">
           <svg viewBox="0 0 16 16"><path d="M8 1v9m0 0L5 7m3 3l3-3M3 13h10" stroke="#7B2D26" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Data
+          <span><span class="docs-name">Data Appendix</span><span class="docs-blurb">Sources and edge tables</span></span>
         </a>
-        <a class="dl-btn" href="TasteRank_Grape_Reference.pdf#page=1" target="_blank">
+        <a href="TasteRank_Grape_Reference.pdf#page=1&view=Fit&toolbar=1&navpanes=0" target="_blank" rel="noopener">
           <svg viewBox="0 0 16 16"><path d="M8 1v9m0 0L5 7m3 3l3-3M3 13h10" stroke="#7B2D26" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Grapes
+          <span><span class="docs-name">Grape Reference</span><span class="docs-blurb">Variety profiles and notes</span></span>
         </a>
       </div>
-    </div>
+    </span>
+  </div>
+</header>
 
-    <div id="search-box">
+<!-- LEFT PANEL -->
+<div id="panel">
+  <div id="panel-sub"><strong>Eigenvector centrality on sensory profiles.</strong> 101 varieties · 341 edges · 6 communities.</div>
+
+  <div id="search-box">
       <input type="text" id="search-input" placeholder="Search variety..." autocomplete="off" />
       <div id="search-results"></div>
     </div>
@@ -325,13 +321,18 @@
 
     <div id="detail"></div>
 
-    <div id="panel-footer">
-      <div class="motto">in vino, cognitio</div>
-      <div>
-        Part of <a href="https://jskarabot18.github.io/vinotheca/">Vinotheca</a> · by Jure Skarabot<br>
-        Licensed <a href="https://creativecommons.org/licenses/by-nc/4.0/">CC BY-NC 4.0</a>
-      </div>
-    </div>
+    <footer id="atlas-footer">
+      <p class="atlas-footer-motto">
+        <span class="fleuron">❧</span><em>in vino, cognitio</em><span class="fleuron">❧</span>
+      </p>
+      <p class="atlas-footer-links">
+        <a href="https://github.com/jskarabot18/tasterank-explorer">GitHub</a>
+        <a href="https://github.com/jskarabot18/tasterank-explorer/blob/main/LICENSE">License · CC BY-NC 4.0</a>
+        <a href="https://jskarabot18.github.io/vinotheca/">Vinotheca</a>
+        <a href="mailto:skarabot@yahoo.com">Correspondence</a>
+      </p>
+      <p class="atlas-footer-copyright">© Jure Skarabot · MMXXVI</p>
+    </footer>
   </div>
 
   <!-- GRAPH -->
@@ -342,6 +343,53 @@
   </div>
 
 </div>
+
+<script>
+// Documentation dropdown — open/close on toggle, close on outside click or Escape.
+// Defined in a separate script so it works even if the main visualisation script crashes.
+(function () {
+  function init() {
+    const toggle = document.getElementById('docs-toggle');
+    const menu   = document.getElementById('docs-menu');
+    if (!toggle || !menu) return;
+
+    const close = () => {
+      menu.classList.remove('is-open');
+      toggle.setAttribute('aria-expanded', 'false');
+    };
+    const open = () => {
+      menu.classList.add('is-open');
+      toggle.setAttribute('aria-expanded', 'true');
+    };
+
+    toggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (menu.classList.contains('is-open')) close();
+      else open();
+    });
+
+    // Close on click outside the dropdown
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.docs-dropdown')) close();
+    });
+
+    // Close on Escape — capture phase so the dropdown handles Esc before the
+    // main app's existing Esc=reset handler. Only consume Esc when menu is open.
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && menu.classList.contains('is-open')) {
+        close();
+        e.stopPropagation();
+      }
+    }, true);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
 
 <script>
 // ============================================================================
