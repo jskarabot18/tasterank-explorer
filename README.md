@@ -1,10 +1,10 @@
-# TasteRank Explorer
+# Grape Affinities
 
-An interactive force-directed network visualization of wine grape variety similarity, built on a 13-dimension sensory profile drawn from established wine-tasting methodology (UC Davis, Peynaud, and related structured tasting frameworks). The graph uses eigenvector centrality to rank 101 grape varieties by their structural importance in a similarity network, and Clauset–Newman–Moore greedy modularity optimization to identify six natural clusters.
+A map of how grape varieties relate to one another. An interactive force-directed network visualization of wine grape variety similarity, built on a 13-dimension sensory profile drawn from established wine-tasting methodology (UC Davis, Peynaud, and related structured tasting frameworks). The graph uses the **TasteRank algorithm** — eigenvector centrality on a sensory similarity network — to rank 101 grape varieties by their structural importance, and Clauset–Newman–Moore greedy modularity optimization to identify six natural clusters.
 
 ## Live Site
 
-**[→ Open TasteRank Explorer](https://jskarabot18.github.io/tasterank-explorer/)**
+**[→ Open Grape Affinities](https://jskarabot18.github.io/tasterank-explorer/)**
 
 ## What's Inside
 
