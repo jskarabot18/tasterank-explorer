@@ -25,14 +25,11 @@
 
   /* Documentation dropdown — opens below the meta link */
   .docs-dropdown { position: relative; }
-  .docs-menu { display: none; position: absolute; right: 0; top: calc(100% + 6px); min-width: 240px; background: #fff; border: 1px solid #e8e2db; border-radius: 8px; box-shadow: 0 6px 22px rgba(40,20,10,0.08); z-index: 1200; padding: 6px 0; }
+  .docs-menu { display: none; position: absolute; right: 0; top: calc(100% + 6px); min-width: 200px; background: #fff; border: 1px solid #e8e2db; border-radius: 8px; box-shadow: 0 6px 22px rgba(40,20,10,0.08); z-index: 1200; padding: 6px 0; }
   .docs-menu.is-open { display: block; }
-  .docs-menu a { display: flex; align-items: flex-start; gap: 10px; padding: 9px 14px; font-size: 12px; color: #333; text-decoration: none; border: none; text-transform: none; letter-spacing: normal; transition: background .12s; }
+  .docs-menu a { display: block; padding: 9px 14px; font-size: 12px; font-weight: 500; color: #333; text-decoration: none; border: none; text-transform: none; letter-spacing: normal; transition: background .12s; }
   .docs-menu a:hover { background: #faf8f5; color: #7B2D26; }
   .docs-menu a + a { border-top: 1px solid #f3eee8; }
-  .docs-menu svg { width: 13px; height: 13px; flex-shrink: 0; margin-top: 2px; }
-  .docs-menu .docs-name { flex: 1; font-weight: 500; }
-  .docs-menu .docs-blurb { display: block; font-size: 10.5px; color: #999; margin-top: 1px; font-weight: 400; }
 
   /* LEFT PANEL */
   #panel { background: #fff; border-right: 1px solid #e8e2db; display: flex; flex-direction: column; overflow: hidden; }
@@ -276,26 +273,11 @@
     <span class="docs-dropdown">
       <button type="button" id="docs-toggle" aria-haspopup="true" aria-expanded="false">Documentation ▾</button>
       <div class="docs-menu" id="docs-menu" role="menu">
-        <a href="TasteRank_Summary.pdf#page=1&view=Fit&toolbar=1&navpanes=0" target="_blank" rel="noopener">
-          <svg viewBox="0 0 16 16"><path d="M8 1v9m0 0L5 7m3 3l3-3M3 13h10" stroke="#7B2D26" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <span><span class="docs-name">Summary</span><span class="docs-blurb">Plain-language overview</span></span>
-        </a>
-        <a href="TasteRank_Technical_Appendix.pdf#page=1&view=Fit&toolbar=1&navpanes=0" target="_blank" rel="noopener">
-          <svg viewBox="0 0 16 16"><path d="M8 1v9m0 0L5 7m3 3l3-3M3 13h10" stroke="#7B2D26" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <span><span class="docs-name">Technical Appendix</span><span class="docs-blurb">Algorithms and computation</span></span>
-        </a>
-        <a href="TasteRank_Methods_Primer.pdf#page=1&view=Fit&toolbar=1&navpanes=0" target="_blank" rel="noopener">
-          <svg viewBox="0 0 16 16"><path d="M8 1v9m0 0L5 7m3 3l3-3M3 13h10" stroke="#7B2D26" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <span><span class="docs-name">Methods Primer</span><span class="docs-blurb">Network theory background</span></span>
-        </a>
-        <a href="TasteRank_Data_Appendix.pdf#page=1&view=Fit&toolbar=1&navpanes=0" target="_blank" rel="noopener">
-          <svg viewBox="0 0 16 16"><path d="M8 1v9m0 0L5 7m3 3l3-3M3 13h10" stroke="#7B2D26" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <span><span class="docs-name">Data Appendix</span><span class="docs-blurb">Sources and edge tables</span></span>
-        </a>
-        <a href="TasteRank_Grape_Reference.pdf#page=1&view=Fit&toolbar=1&navpanes=0" target="_blank" rel="noopener">
-          <svg viewBox="0 0 16 16"><path d="M8 1v9m0 0L5 7m3 3l3-3M3 13h10" stroke="#7B2D26" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <span><span class="docs-name">Grape Reference</span><span class="docs-blurb">Variety profiles and notes</span></span>
-        </a>
+        <a href="TasteRank_Summary.pdf#page=1&view=Fit&toolbar=1&navpanes=0" target="_blank" rel="noopener">Summary</a>
+        <a href="TasteRank_Technical_Appendix.pdf#page=1&view=Fit&toolbar=1&navpanes=0" target="_blank" rel="noopener">Technical Appendix</a>
+        <a href="TasteRank_Methods_Primer.pdf#page=1&view=Fit&toolbar=1&navpanes=0" target="_blank" rel="noopener">Methods Primer</a>
+        <a href="TasteRank_Data_Appendix.pdf#page=1&view=Fit&toolbar=1&navpanes=0" target="_blank" rel="noopener">Data Appendix</a>
+        <a href="TasteRank_Grape_Reference.pdf#page=1&view=Fit&toolbar=1&navpanes=0" target="_blank" rel="noopener">Grape Reference</a>
       </div>
     </span>
   </div>
