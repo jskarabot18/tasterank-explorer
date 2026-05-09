@@ -25,10 +25,11 @@ A map of how grape varieties relate to one another. An interactive force-directe
 | File | Description |
 |------|-------------|
 | `index.html` | Self-contained interactive network visualization |
-| `TasteRank_Summary.pdf` | Overview of methodology and key findings |
-| `TasteRank_Technical_Appendix.pdf` | Full technical details: graph construction, centrality math, community detection |
-| `TasteRank_Data_Appendix.pdf` | Complete sensory profiles, rankings, and community assignments |
-| `TasteRank_Grape_Reference.pdf` | One-paragraph profiles for all 101 grape varieties |
+| `docs/summary.pdf` | Overview of methodology and key findings |
+| `docs/technical-appendix.pdf` | Full technical details: graph construction, centrality math, community detection |
+| `docs/methods-primer.pdf` | Plain-language guide to the procedure for readers who want to follow the reasoning without the equations |
+| `docs/data-appendix.pdf` | Complete sensory profiles, rankings, and community assignments |
+| `docs/grape-reference.pdf` | One-paragraph profiles for all 101 grape varieties |
 | `README.md` | This file |
 | `LICENSE` | CC BY-NC 4.0 license |
 
