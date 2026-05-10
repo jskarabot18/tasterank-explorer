@@ -5,38 +5,50 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Grape Affinities — Wine Grape Similarity Network</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
 <style>
+  :root {
+    --wine:         #7B2D26;
+    --wine-dark:    #5A1F1A;
+    --wine-light:   #A04038;
+    --paper:        #FAF6F1;
+    --paper-raised: #FFFDF8;
+    --paper-deep:   #ece4d6;
+    --ink:          #1a1a1a;
+    --ink-soft:     #5a5048;
+    --ink-muted:    #8a7a6e;
+    --border:       #e8e2db;
+  }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { width: 100%; height: 100%; overflow: hidden; font-family: 'DM Sans', system-ui, sans-serif; background: #FAF8F5; }
+  html, body { width: 100%; height: 100%; overflow: hidden; font-family: 'DM Sans', system-ui, sans-serif; background: var(--paper); }
 
   /* Layout: masthead spans full width on top; rail and graph below.
      Mirrors the atlases' grid (auto/1fr rows × panel/1fr columns). */
   #app { display: grid; grid-template-columns: 310px 1fr; grid-template-rows: auto 1fr; width: 100%; height: 100%; }
 
   /* Masthead — top bar, full-width */
-  #masthead { grid-column: 1 / -1; display: flex; align-items: flex-end; justify-content: space-between; padding: 18px 28px; background: #FAF8F5; border-bottom: 1px solid #e8e2db; z-index: 1100; position: relative; }
+  #masthead { grid-column: 1 / -1; display: flex; align-items: flex-end; justify-content: space-between; padding: 18px 28px; background: var(--paper); border-bottom: 1px solid var(--border); z-index: 1100; position: relative; }
   .masthead-titleblock { display: flex; flex-direction: column; gap: 4px; }
-  .masthead-eyebrow { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: #8a7a6e; font-weight: 500; margin: 0; }
-  #masthead h1 { font-family: 'DM Serif Display', serif; font-size: 22px; color: #7B2D26; letter-spacing: -0.5px; line-height: 1; margin: 0; }
+  .masthead-eyebrow { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-muted); font-weight: 500; margin: 0; }
+  #masthead h1 { font-family: 'Cormorant Garamond', serif; font-size: 22px; color: var(--wine); letter-spacing: -0.5px; line-height: 1; margin: 0; }
   #masthead h1 em { font-style: italic; font-weight: 400; }
   #masthead-meta { display: flex; align-items: center; gap: 14px; font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase; }
   #masthead-meta a, #masthead-meta button { color: #888; text-decoration: none; border: none; background: transparent; padding: 0; font: inherit; cursor: pointer; letter-spacing: inherit; text-transform: inherit; border-bottom: 1px solid transparent; padding-bottom: 1px; transition: color .15s, border-color .15s; }
-  #masthead-meta a:hover, #masthead-meta button:hover { color: #7B2D26; border-bottom-color: #7B2D26; }
+  #masthead-meta a:hover, #masthead-meta button:hover { color: var(--wine); border-bottom-color: var(--wine); }
   #masthead-meta .divider { color: #ccc; }
 
   /* Documentation dropdown — opens below the meta link */
   .docs-dropdown { position: relative; }
-  .docs-menu { display: none; position: absolute; right: 0; top: calc(100% + 6px); min-width: 200px; background: #fff; border: 1px solid #e8e2db; border-radius: 8px; box-shadow: 0 6px 22px rgba(40,20,10,0.08); z-index: 1200; padding: 6px 0; }
+  .docs-menu { display: none; position: absolute; right: 0; top: calc(100% + 6px); min-width: 200px; background: var(--paper-raised); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 6px 22px rgba(40,20,10,0.08); z-index: 1200; padding: 6px 0; }
   .docs-menu.is-open { display: block; }
   #masthead-meta .docs-menu a { display: block; padding: 9px 14px; font-size: 12px; font-weight: 500; color: #333; text-decoration: none; border: none; text-transform: none; letter-spacing: normal; transition: background .12s; }
-  #masthead-meta .docs-menu a:hover { background: #faf8f5; color: #7B2D26; }
+  #masthead-meta .docs-menu a:hover { background: var(--paper); color: var(--wine); }
   #masthead-meta .docs-menu a + a { border-top: 1px solid #f3eee8; }
 
   /* LEFT PANEL */
-  #panel { background: #fff; border-right: 1px solid #e8e2db; display: flex; flex-direction: column; overflow: hidden; }
+  #panel { background: var(--paper-raised); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
   /* Italic intro line at top of rail (replaces old #panel-header block) */
-  #panel-sub { padding: 14px 18px 12px; border-bottom: 1px solid #e8e2db; font-size: 11.5px; color: #888; line-height: 1.5; font-style: italic; }
+  #panel-sub { padding: 14px 18px 12px; border-bottom: 1px solid var(--border); font-size: 11.5px; color: #888; line-height: 1.5; font-style: italic; }
   #panel-sub strong { color: #5a5a5a; font-weight: 600; font-style: normal; }
 
 
@@ -44,13 +56,13 @@
   #search-box { padding: 10px 18px; }
   #search-input {
     width: 100%; padding: 9px 12px; border: 1px solid #ddd; border-radius: 7px;
-    font-size: 13px; font-family: 'DM Sans', sans-serif; outline: none; background: #faf8f5;
+    font-size: 13px; font-family: 'DM Sans', sans-serif; outline: none; background: var(--paper);
     transition: border-color 0.15s;
   }
-  #search-input:focus { border-color: #7B2D26; }
-  #search-results { margin-top: 4px; border: 1px solid #eee; border-radius: 7px; background: #fff; max-height: 200px; overflow: auto; display: none; }
+  #search-input:focus { border-color: var(--wine); }
+  #search-results { margin-top: 4px; border: 1px solid #eee; border-radius: 7px; background: var(--paper-raised); max-height: 200px; overflow: auto; display: none; }
   .search-item { padding: 7px 12px; cursor: pointer; font-size: 12px; border-bottom: 1px solid #f5f5f5; display: flex; align-items: center; gap: 8px; }
-  .search-item:hover { background: #faf8f5; }
+  .search-item:hover { background: var(--paper); }
   .search-item:last-child { border-bottom: none; }
 
   /* Reset bar */
@@ -59,13 +71,13 @@
     align-items: center; gap: 8px;
   }
   #reset-bar.active { display: flex; }
-  #reset-bar .filter-label { flex: 1; font-size: 11.5px; color: #7B2D26; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #reset-bar .filter-label { flex: 1; font-size: 11.5px; color: var(--wine); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   #reset-btn {
-    padding: 4px 12px; border: 1px solid #d4a89a; border-radius: 5px; background: #fff;
-    font-size: 11px; font-family: 'DM Sans', sans-serif; color: #7B2D26; cursor: pointer;
+    padding: 4px 12px; border: 1px solid #d4a89a; border-radius: 5px; background: var(--paper-raised);
+    font-size: 11px; font-family: 'DM Sans', sans-serif; color: var(--wine); cursor: pointer;
     font-weight: 600; transition: all 0.15s;
   }
-  #reset-btn:hover { background: #7B2D26; color: #fff; }
+  #reset-btn:hover { background: var(--wine); color: #fff; }
 
   /* Clusters */
   #clusters { padding: 4px 18px 10px; }
@@ -74,17 +86,17 @@
     padding: 7px 10px; margin-bottom: 3px; border-radius: 6px; cursor: pointer;
     border: 1.5px solid transparent; transition: all 0.15s; display: flex; align-items: center; gap: 8px;
   }
-  .cluster-item:hover { background: #faf8f5; }
+  .cluster-item:hover { background: var(--paper); }
   .cluster-item.active { border-color: var(--cc); background: var(--cbg); }
   .cluster-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
   .cluster-label { font-size: 11.5px; color: #333; flex: 1; line-height: 1.3; }
   .cluster-count { font-size: 10px; color: #aaa; }
 
   /* Detail / list area */
-  #detail { flex: 1; overflow-y: auto; overflow-x: hidden; border-top: 1px solid #e8e2db; padding: 14px 18px; }
-  #detail h2 { font-family: 'DM Serif Display', serif; font-size: 18px; color: #1a1a1a; }
+  #detail { flex: 1; overflow-y: auto; overflow-x: hidden; border-top: 1px solid var(--border); padding: 14px 18px; }
+  #detail h2 { font-family: 'Cormorant Garamond', serif; font-size: 18px; color: var(--ink); }
   .detail-meta { display: flex; gap: 12px; font-size: 11px; color: #666; margin: 4px 0 12px; }
-  .detail-meta strong { color: #7B2D26; }
+  .detail-meta strong { color: var(--wine); }
 
   .profile-row { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
   .profile-label { width: 76px; font-size: 9.5px; color: #777; text-align: right; flex-shrink: 0; }
@@ -96,33 +108,33 @@
     padding: 5px 8px; margin-bottom: 2px; border-radius: 5px; cursor: pointer;
     display: flex; align-items: center; gap: 6px; font-size: 11.5px;
   }
-  .list-item:hover { background: #faf8f5; }
+  .list-item:hover { background: var(--paper); }
   .list-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
   .list-name { flex: 1; color: #333; }
   .list-meta { font-size: 9px; color: #aaa; }
   .list-rank { font-size: 9px; color: #bbb; }
 
-  .rank-num { width: 30px; padding-right: 4px; font-size: 10px; color: #7B2D26; font-weight: 700; text-align: right; flex-shrink: 0; }
+  .rank-num { width: 30px; padding-right: 4px; font-size: 10px; color: var(--wine); font-weight: 700; text-align: right; flex-shrink: 0; }
 
   .hint-box {
-    margin-top: 16px; padding: 12px; background: #faf8f5; border-radius: 8px;
+    margin-top: 16px; padding: 12px; background: var(--paper); border-radius: 8px;
     font-size: 10.5px; color: #888; line-height: 1.6;
   }
   .hint-box strong { color: #666; }
 
   /* Canvas */
   #canvas { flex: 1; position: relative; overflow: hidden; }
-  #canvas svg { width: 100%; height: 100%; background: #FAF8F5; }
+  #canvas svg { width: 100%; height: 100%; background: var(--paper); }
 
   /* Tooltip */
   #tooltip {
     position: absolute; top: 12px; left: 12px; display: none;
     background: rgba(255,255,255,0.95); backdrop-filter: blur(8px);
-    border: 1px solid #e8e2db; border-radius: 10px; padding: 10px 14px;
+    border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.06); pointer-events: none; max-width: 230px;
   }
   #tooltip.visible { display: block; }
-  #tooltip .tt-name { font-weight: 700; font-size: 13px; color: #1a1a1a; }
+  #tooltip .tt-name { font-weight: 700; font-size: 13px; color: var(--ink); }
   #tooltip .tt-info { font-size: 11px; color: #666; line-height: 1.5; margin-top: 2px; }
 
   /* Keyboard hint */
@@ -140,7 +152,7 @@
     display: flex; align-items: center; gap: 8px; margin-bottom: 4px;
   }
   .variety-dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
-  #detail h2 { font-family: 'DM Serif Display', serif; font-size: 22px; color: #1a1410; letter-spacing: -0.3px; line-height: 1.15; }
+  #detail h2 { font-family: 'Cormorant Garamond', serif; font-size: 22px; color: #1a1410; letter-spacing: -0.3px; line-height: 1.15; }
 
   .variety-region {
     font-family: 'DM Sans', sans-serif;
@@ -164,7 +176,7 @@
     letter-spacing: 0; text-transform: none; font-size: 11.5px;
   }
   .variety-meta .vm-community {
-    color: var(--accent, #7B2D26);
+    color: var(--wine);
     font-weight: 600;
     letter-spacing: 0.8px;
   }
@@ -180,12 +192,12 @@
     -webkit-hyphens: auto;
   }
   .variety-prose::first-letter {
-    font-family: 'DM Serif Display', serif;
+    font-family: 'Cormorant Garamond', serif;
     font-size: 2.2em;
     line-height: 1;
     float: left;
     margin: 0.08em 0.1em -0.05em 0;
-    color: var(--accent, #7B2D26);
+    color: var(--wine);
   }
 
   /* Decorative rule between narrative and data */
@@ -198,7 +210,7 @@
     background: linear-gradient(to right, transparent, #d8ccbf, transparent);
   }
   .soft-rule .glyph {
-    font-family: 'DM Serif Display', serif;
+    font-family: 'Cormorant Garamond', serif;
     font-size: 10px; letter-spacing: 2px;
     color: #a89786; font-style: italic;
   }
@@ -208,8 +220,8 @@
   .nb-chip {
     display: inline-flex; align-items: center; gap: 5px;
     padding: 4px 8px 4px 7px;
-    background: #fff;
-    border: 1px solid #e8e2db;
+    background: var(--paper-raised);
+    border: 1px solid var(--border);
     border-radius: 12px;
     font-size: 11px;
     color: #2a2420;
@@ -217,7 +229,7 @@
     transition: all 0.14s ease;
   }
   .nb-chip:hover {
-    border-color: var(--accent, #7B2D26);
+    border-color: var(--wine);
     background: #fffdfb;
   }
   .nb-chip .nb-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
@@ -236,10 +248,10 @@
     font-family: 'DM Sans', sans-serif;
     font-size: 10px; font-weight: 600;
     text-transform: uppercase; letter-spacing: 1.6px;
-    color: #7B2D26; margin-bottom: 8px;
+    color: var(--wine); margin-bottom: 8px;
   }
   .about-block h3 {
-    font-family: 'DM Serif Display', serif;
+    font-family: 'Cormorant Garamond', serif;
     font-size: 17px; line-height: 1.2;
     color: #1a1410; margin-bottom: 8px;
     letter-spacing: -0.2px; font-weight: 400;
@@ -255,12 +267,12 @@
 
   /* Footer — attribution and license, always visible */
   /* Standardized atlas footer (matches Grand Cru / Estate Atlas) */
-  #atlas-footer { flex-shrink: 0; border-top: 1px solid #e8e2db; padding: 14px 18px 14px; background: #fff; font-family: 'DM Sans', system-ui, sans-serif; font-size: 11px; line-height: 1.55; color: #888; }
-  .atlas-footer-motto { text-align: center; font-family: 'DM Serif Display', serif; font-size: 13px; color: #7B2D26; letter-spacing: 0.02em; margin: 0 0 10px; font-style: italic; }
+  #atlas-footer { flex-shrink: 0; border-top: 1px solid var(--border); padding: 14px 18px 14px; background: var(--paper-raised); font-family: 'DM Sans', system-ui, sans-serif; font-size: 11px; line-height: 1.55; color: #888; }
+  .atlas-footer-motto { text-align: center; font-family: 'Cormorant Garamond', serif; font-size: 13px; color: var(--wine); letter-spacing: 0.02em; margin: 0 0 10px; font-style: italic; }
   .atlas-footer-motto .fleuron { color: #a86259; font-style: normal; margin: 0 6px; font-size: 12px; }
   .atlas-footer-links { display: flex; flex-wrap: wrap; gap: 3px 12px; justify-content: center; margin: 0 0 10px; }
   .atlas-footer-links a { color: #888; text-decoration: none; border-bottom: 1px solid transparent; transition: color .15s, border-color .15s; font-size: 11px; }
-  .atlas-footer-links a:hover { color: #7B2D26; border-bottom-color: #7B2D26; }
+  .atlas-footer-links a:hover { color: var(--wine); border-bottom-color: var(--wine); }
   .atlas-footer-copyright { text-align: center; font-style: italic; font-size: 10.5px; color: #aaa; letter-spacing: 0.04em; margin: 0; }
 </style>
 </head>
